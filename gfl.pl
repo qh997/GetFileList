@@ -34,16 +34,16 @@ sub init {
     debug(2, "\$HELP = $HELP");
 
     for my $type (@$FTYPE) {
-        check_option_value('-t/--type', $type, [qw[reg dir sym]]);
+        check_option_value('-t/--type', $type, qw[reg dir sym]);
     }
     debug(2, "\$FTYPE = @$FTYPE");
 
     debug(2, "\$SRCHDEP = $SRCHDEP");
 
-    check_option_value('-o/--order', $ORD, [qw[pos rev nul]]);
+    check_option_value('-o/--order', $ORD, qw[pos rev nul]);
     debug(2, "\$ORD = $ORD");
 
-    check_option_value('-s/--sort-by', $SORTBY, [qw[path file size date]]);
+    check_option_value('-s/--sort-by', $SORTBY, qw[path file size date]);
     debug(2, "\$SORTBY = $SORTBY");
     debug(2, "\$OUTPUT = $OUTPUT");
     debug(2, "\$GROUP = $GROUP");
@@ -55,11 +55,11 @@ sub init {
 sub check_option_value {
     my $option = shift;
     my $value = shift;
-    my $values = shift;
+    my @values = @_;
 
-    unless (grep $value eq $_, @$values) {
-        my $optstr = join(', ', @$values);
-        print STDERR "Value \"$value\" invalid for option $option (choose from $optstr)\n";
+    unless (grep $value eq $_, @values) {
+        my $optstr = join(', ', map "'$_'", @values);
+        print STDERR "Value \"$value\" invalid for option $option (choose $optstr)\n";
         pod2usage(2);
     }
 }
