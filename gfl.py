@@ -26,17 +26,17 @@ def init():
     parser.add_argument(
         '-o', '--order',
         choices = ['pos', 'rev', 'nul'],
-        default = 'positive',
+        default = 'pos',
         help = 'Specify the order of output.(default: %(default)s)')
     parser.add_argument(
         '-s', '--sort-by',
         choices = ['path', 'file', 'size', 'date'],
-        default = 'pathname',
+        default = 'path',
         help = 'Specify the key of sort.(default: %(default)s)')
     parser.add_argument(
         '-p', '--output',
-        choices = ['abs', 'rel', 'basename'],
-        default = 'relative',
+        choices = ['abs', 'rel', 'bsn'],
+        default = 'rel',
         help = 'Specify the style of output.(default: %(default)s)')
     parser.add_argument(
         '-g', '--group',
