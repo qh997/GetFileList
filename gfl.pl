@@ -150,7 +150,7 @@ sub list_dir {
             debug(1, "\$path = $path");
             local *DH;
             if (!opendir(DH, $path)) {
-                print STDERR "Cannot opendir $path: $!";
+                print STDERR "Cannot opendir $path: $!\n";
                 return;
             }
 
@@ -172,9 +172,9 @@ sub list_dir {
                 }
 
                 debug(1, "$file");
-                my ($mode, $size, $mtime) = (stat($file))[2, 7, 9];
-                debug(2, "Size: $size") if $size;
-                debug(2, "Mtime: $mtime") if $mtime;
+                my ($mode, $size, $mtime) = (lstat($file))[2, 7, 9];
+                debug(2, "Size: $size");
+                debug(2, "Mtime: $mtime");
                 push @ret_list, {
                     path => $path,
                     file => $_,
