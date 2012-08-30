@@ -24,13 +24,13 @@ def init():
         default = -1,
         help = 'Specify the depth of the searching.(default: %(default)s)')
     parser.add_argument(
-        '-o', '--order',
-        choices = ['pos', 'rev', 'nul'],
-        default = 'pos',
-        help = 'Specify the order of output.(default: %(default)s)')
+        '-r', '--reverse',
+        action = 'store_true',
+        default = False,
+        help = 'Reverse the result.(default: %(default)s)')
     parser.add_argument(
         '-s', '--sort-by',
-        choices = ['path', 'file', 'size', 'date'],
+        choices = ['path', 'file', 'size', 'date', 'null'],
         default = 'path',
         help = 'Specify the key of sort.(default: %(default)s)')
     parser.add_argument(
@@ -63,10 +63,10 @@ def init():
         help = 'The path list.(default: current dir)')
 
     args = parser.parse_args()
-    global FTYPE, SRCHDEP, ORD, SORTBY, OUTPUT, GROUP, DEBUG
+    global FTYPE, SRCHDEP, REV, SORTBY, OUTPUT, GROUP, DEBUG
     FTYPE = args.type if args.type else ['reg']
     SRCHDEP = args.depth
-    ORD = args.order
+    REV = args.reverse
     SORTBY = args.sort_by
     OUTPUT = args.output
     GROUP = args.group
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     dirpaths = init()
     debug(2, 'FTYPE = ', FTYPE)
     debug(2, 'SRCHDEP = ', SRCHDEP)
-    debug(2, 'ORD = ', ORD)
+    debug(2, 'REV = ', REV)
     debug(2, 'SORTBY = ', SORTBY)
     debug(2, 'OUTPUT = ', OUTPUT)
     debug(2, 'GROUP = ', GROUP)
@@ -138,24 +138,23 @@ if __name__ == '__main__':
 
         sorted_files = []
 
-        if ORD != 'null':
-            rev = True if ORD == 'reverse' else False
-            if SORTBY == 'pathname':
-                sorted_files = sorted(listgroup[1], key = lambda x: x[0], reverse = rev)
-            elif SORTBY == 'filename':
-                sorted_files = sorted(listgroup[1], key = lambda x: os.path.basename(x[0]), reverse = rev)
-            elif SORTBY == 'filesize':
-                sorted_files = sorted(listgroup[1], key = lambda x: x[1], reverse = rev)
-            elif SORTBY == 'filedate':
-                sorted_files = sorted(listgroup[1], key = lambda x: x[2], reverse = rev)
+        if SORTBY != 'null':
+            if SORTBY == 'path':
+                sorted_files = sorted(listgroup[1], key = lambda x: x[0], reverse = REV)
+            elif SORTBY == 'file':
+                sorted_files = sorted(listgroup[1], key = lambda x: os.path.basename(x[0]), reverse = REV)
+            elif SORTBY == 'size':
+                sorted_files = sorted(listgroup[1], key = lambda x: x[1], reverse = REV)
+            elif SORTBY == 'date':
+                sorted_files = sorted(listgroup[1], key = lambda x: x[2], reverse = REV)
         else:
             sorted_files = listgroup[1]
 
         for sfile in sorted_files:
             debug(3, sfile)
-            if OUTPUT == 'absolute':
+            if OUTPUT == 'abs':
                 print sfile[0]
-            elif OUTPUT == 'relative':
+            elif OUTPUT == 'rel':
                 print sfile[0][len(listgroup[0]):]
-            elif OUTPUT == 'basename':
+            elif OUTPUT == 'bsn':
                 print os.path.basename(sfile[0])
