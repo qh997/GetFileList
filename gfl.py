@@ -100,7 +100,7 @@ def getFileList(path, depth, ftype):
                         isappend = True
                 elif 'reg' in ftype and stat.S_ISREG(st.st_mode):
                     isappend = True
-                elif 'sym' in ftype and stat.S_ISREG(st.st_mode):
+                elif 'sym' in ftype and stat.S_ISLNK(st.st_mode):
                     isappend = True
 
                 if isappend: dirlist.append([fullname, st.st_size, st.st_mtime])
