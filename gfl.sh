@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function init {
-    ARGS=$(getopt -o ht:d:rs:p:g --long help --long type: --long depth:\
+    ARGS=$(getopt -o ht:d:rs:o:g --long help --long type: --long depth:\
                                  --long reverse --long sort-by: --long output:\
                                  --long group --long debug: -n "$0" -- "$@")
     if [ $? != 0 ]; then
@@ -17,7 +17,7 @@ function init {
             -d|--depth) SRCHDEP=$2; shift 2;;
             -r|--reverse) : ${REV:=1}; shift;;
             -s|--sort-by) SORTBY=$2; shift 2;;
-            -p|--output) OUTPUT=$2; shift 2;;
+            -o|--output) OUTPUT=$2; shift 2;;
             -g|--group) : ${GROUP:=1}; shift;;
             --debug) DEBUG=$2; shift 2;;
             --) shift; break;;
@@ -73,7 +73,7 @@ Usage:
       -d DEPTH, --depth DEPTH
       -r, --reverse
       -s {path,file,size,date}, --sort-by {path,file,size,date,null}
-      -p {abs,rel,bsn}, --output {abs,rel,bsn}
+      -o {abs,rel,bsn}, --output {abs,rel,bsn}
       -g, --group
       --debug DEBUG-LEVEL
       -v, --version
@@ -108,7 +108,7 @@ Options:
             {date}  Sort by time of last modification.
             {null}  Use default order.
 
-    -p {abs,rel,bsn}, --optput {abs,rel,bsn}
+    -o {abs,rel,bsn}, --optput {abs,rel,bsn}
             Specify the key of sort.
 
             {abs}   Absolute path.
@@ -257,12 +257,12 @@ for path in ${paths[*]}; do
                 echo $filename
             elif [ $OUTPUT = 'rel' ]; then
                 filename=${filename##*$path}
-                if [ $(echo $filename | cut -c1) = '/' ]; then
+                if [ $(echo "$filename" | cut -c1) = '/' ]; then
                     filename=${filename##/}
                 fi
                 echo $filename
             elif [ $OUTPUT = 'bsn' ]; then
-                filename=$(basename $filename)
+                filename=$(basename "$filename")
                 echo $filename
             fi
         done
@@ -274,12 +274,12 @@ for path in ${paths[*]}; do
                 echo $filename
             elif [ $OUTPUT = 'rel' ]; then
                 filename=${filename##*$path}
-                if [ $(echo $filename | cut -c1) = '/' ]; then
+                if [ $(echo "$filename" | cut -c1) = '/' ]; then
                     filename=${filename##/}
                 fi
                 echo $filename
             elif [ $OUTPUT = 'bsn' ]; then
-                filename=$(basename $filename)
+                filename=$(basename "$filename")
                 echo $filename
             fi
         done

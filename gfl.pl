@@ -72,6 +72,9 @@ for my $path (@sorted_list) {
                       length($fmt_path) + 1,
                   )."\n";
         }
+        elsif ($OUTPUT eq 'bsn') {
+            print $file->{file}."\n";
+        }
     }
 }
 
@@ -82,7 +85,7 @@ sub init {
         'd|depth=i' => \$SRCHDEP,
         'r|reverse' => \$REV,
         's|sort-by=s' => \$SORTBY,
-        'p|output=s' => \$OUTPUT,
+        'o|output=s' => \$OUTPUT,
         'g|group' => \$GROUP,
         'debug=i' => \$DEBUG,
     ) or pod2usage(2);
@@ -103,7 +106,7 @@ sub init {
     check_option_value('-s/--sort-by', $SORTBY, qw[path file size date null]);
     debug(2, "\$SORTBY = $SORTBY");
 
-    check_option_value('-p/--output', $OUTPUT, qw[abs rel bsn]);
+    check_option_value('-o/--output', $OUTPUT, qw[abs rel bsn]);
     debug(2, "\$OUTPUT = $OUTPUT");
 
     debug(2, "\$GROUP = $GROUP");

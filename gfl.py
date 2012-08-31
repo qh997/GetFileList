@@ -34,7 +34,7 @@ def init():
         default = 'path',
         help = 'Specify the key of sort.(default: %(default)s)')
     parser.add_argument(
-        '-p', '--output',
+        '-o', '--output',
         choices = ['abs', 'rel', 'bsn'],
         default = 'rel',
         help = 'Specify the style of output.(default: %(default)s)')
