@@ -174,11 +174,15 @@ for path in ${paths[*]}; do
     declare ftype=$FTYPE
     for ft in $ftype; do
         if [ $ft = 'reg' ]; then
-            filelist=$filelist$(eval $find_cmd -type f)$(echo -e "\n\b")
+            filelist=$filelist$(eval $find_cmd -type f)
         elif [ $ft = 'dir' ]; then
-            filelist=$filelist$(eval $find_cmd -type d)$(echo -e "\n\b")
+            filelist=$filelist$(eval $find_cmd -type d)
         elif [ $ft = 'sym' ]; then
-            filelist=$filelist$(eval $find_cmd -type l)$(echo -e "\n\b")
+            filelist=$filelist$(eval $find_cmd -type l)
+        fi
+
+        if [ "$filelist" ]; then
+            filelist=$filelist$(echo -e "\n\b")
         fi
     done
 
