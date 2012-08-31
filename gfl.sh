@@ -25,18 +25,19 @@ function init {
         esac
     done
 
-    : ${HELP:=0}
+    if [ $HELP ]; then
+        usage 1
+        exit 0
+    fi
+
+    #: ${HELP:=0}
     : ${FTYPE:='reg'}
-    : ${SRCHDEP:=-1}
+    #: ${SRCHDEP:=0}
     : ${REV:=0}
     : ${SORTBY:='path'}
     : ${OUTPUT:='rel'}
-    : ${GROUP:=0}
+    #: ${GROUP:=0}
     : ${DEBUG:=0}
-
-    if ((HELP)); then
-        usage 1
-    fi
 
     debug 1 "HELP = $HELP"
 
@@ -138,11 +139,12 @@ function check_option_value {
     local inv=1
     for cv in $values; do
         if [[ $cv == $value ]]; then
-            inv=0
+            inv=
+            break
         fi
     done
 
-    if (( inv )); then
+    if [ $inv ]; then
         echo "Value \"$value\" invalid for option $option (choose $values)"
         usage
         exit 1
@@ -150,9 +152,7 @@ function check_option_value {
 }
 
 function debug {
-    if [[ -z $@ ]]; then
-        return 0
-    elif [[ $# == 2 ]]; then
+    if [[ $# > 0 ]]; then
         local debug_level=$1
         shift
     fi
@@ -160,8 +160,104 @@ function debug {
 
     if [ $debug_level -le $DEBUG ]; then
         local print_time=$(date +%H:%M:%S.%N | sed 's/[[:digit:]]\{6\}$//')
-        echo "[DebugMessage $print_time $debug_level] $1"
+        echo "[DebugMessage $print_time $debug_level] $@"
     fi
 }
 
 init $@
+
+for path in ${paths[*]}; do
+    debug 1 "path = $path"
+
+    find_cmd="find $path"
+    if [ $SRCHDEP ]; then
+        find_cmd=$filelist" -maxdepth $SRCHDEP"
+    fi
+
+    filelist=
+    declare ftype=$FTYPE
+    for ft in $ftype; do
+        if [ $ft = 'reg' ]; then
+            filelist=$filelist$(eval $find_cmd -type f)
+        elif [ $ft = 'dir' ]; then
+            filelist=$filelist$(eval $find_cmd -type d)
+        elif [ $ft = 'sym' ]; then
+            filelist=$filelist$(eval $find_cmd -type l)
+        fi
+    done
+
+    OLD_IFS=$IFS
+    IFS=$(echo -en "\n\b")
+
+    declare -a files
+    file_count=0
+    for file in $filelist; do
+        debug 4 "file = $file"
+        files[$((file_count++))]=$file
+    done
+
+    IFS=$OLD_IFS
+
+    if [ $GROUP ]; then
+        if [ $frist_g ]; then
+            echo
+        fi
+        echo $path
+        frist_g=1
+    fi
+
+    debug 2 "file total : ${#files[*]}"
+
+    if [ $SORTBY = 'path' ]; then
+        for ((j=1; j<${#files[*]}; j++)); do
+
+            key=${files[$j]}
+            i=$((j - 1))
+            while [ $i \> -1 ] && [ "${files[$i]}" \> "${key}" ]; do
+                files[$((i + 1))]=${files[$i]};
+                ((i--));
+            done
+            files[$((i + 1))]=$key
+        done
+    elif [ $SORTBY = 'file' ]; then
+        for ((j=1; j<${#files[*]}; j++)); do
+
+            key=${files[$j]}
+            i=$((j - 1))
+            con_key=$(basename "$key")
+            while [ $i \> -1 ] && [ "$(basename "${files[$i]}")" \> "${con_key}" ]; do
+                files[$((i + 1))]=${files[$i]};
+                ((i--));
+            done
+            files[$((i + 1))]=$key
+        done
+    elif [ $SORTBY = 'size' ]; then
+        for ((j=1; j<${#files[*]}; j++)); do
+
+            key=${files[$j]}
+            i=$((j - 1))
+            con_key=$(cat "$key" 2>/dev/null | wc -c)
+            while [ $i \> -1 ] && [ $(cat "${files[$i]}" 2>/dev/null | wc -c) -gt ${con_key} ]; do
+                files[$((i + 1))]=${files[$i]};
+                ((i--));
+            done
+            files[$((i + 1))]=$key
+        done
+    elif [ $SORTBY = 'date' ]; then
+        for ((j=1; j<${#files[*]}; j++)); do
+
+            key=${files[$j]}
+            i=$((j - 1))
+            con_key=$(date +%Y%m%d%H%M%S -r "$key")
+            while [ $i \> -1 ] && [ $(date +%Y%m%d%H%M%S -r "${files[$i]}") -gt ${con_key} ]; do
+                files[$((i + 1))]=${files[$i]};
+                ((i--));
+            done
+            files[$((i + 1))]=$key
+        done
+    fi
+
+    for ((i=0; i<${#files[*]}; i++)); do
+        echo ${files[$i]}
+    done
+done
