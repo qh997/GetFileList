@@ -103,7 +103,7 @@ def getFileList(path, depth, ftype):
                 elif 'sym' in ftype and stat.S_ISLNK(st.st_mode):
                     isappend = True
 
-                if isappend: dirlist.append([fullname, st.st_size, st.st_mtime])
+                if isappend: dirlist.append([fullname, int(st.st_size), int(st.st_mtime)])
         else:
             sys.stderr.write('[ERROR] Can not found path: {}\n'.format(path))
 
@@ -140,15 +140,17 @@ if __name__ == '__main__':
 
         if SORTBY != 'null':
             if SORTBY == 'path':
-                sorted_files = sorted(listgroup[1], key = lambda x: x[0], reverse = REV)
+                sorted_files = sorted(listgroup[1], key = lambda x: x[0])
             elif SORTBY == 'file':
-                sorted_files = sorted(listgroup[1], key = lambda x: os.path.basename(x[0]), reverse = REV)
+                sorted_files = sorted(listgroup[1], key = lambda x: os.path.basename(x[0]))
             elif SORTBY == 'size':
-                sorted_files = sorted(listgroup[1], key = lambda x: x[1], reverse = REV)
+                sorted_files = sorted(listgroup[1], key = lambda x: x[1])
             elif SORTBY == 'date':
-                sorted_files = sorted(listgroup[1], key = lambda x: x[2], reverse = REV)
+                sorted_files = sorted(listgroup[1], key = lambda x: x[2])
         else:
             sorted_files = listgroup[1]
+
+        if REV: sorted_files.reverse()
 
         for sfile in sorted_files:
             debug(3, sfile)
