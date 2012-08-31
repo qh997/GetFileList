@@ -171,18 +171,18 @@ for path in ${paths[*]}; do
 
     find_cmd="find $path"
     if [ $SRCHDEP ]; then
-        find_cmd=$filelist" -maxdepth $SRCHDEP"
+        find_cmd=$find_cmd" -maxdepth $SRCHDEP"
     fi
 
     filelist=
     declare ftype=$FTYPE
     for ft in $ftype; do
         if [ $ft = 'reg' ]; then
-            filelist=$filelist$(eval $find_cmd -type f)
+            filelist=$filelist$(eval $find_cmd -type f)$(echo -e "\n\b")
         elif [ $ft = 'dir' ]; then
-            filelist=$filelist$(eval $find_cmd -type d)
+            filelist=$filelist$(eval $find_cmd -type d)$(echo -e "\n\b")
         elif [ $ft = 'sym' ]; then
-            filelist=$filelist$(eval $find_cmd -type l)
+            filelist=$filelist$(eval $find_cmd -type l)$(echo -e "\n\b")
         fi
     done
 
@@ -210,7 +210,6 @@ for path in ${paths[*]}; do
 
     if [ $SORTBY = 'path' ]; then
         for ((j=1; j<${#files[*]}; j++)); do
-
             key=${files[$j]}
             i=$((j - 1))
             while [ $i \> -1 ] && [ "${files[$i]}" \> "${key}" ]; do
@@ -221,7 +220,6 @@ for path in ${paths[*]}; do
         done
     elif [ $SORTBY = 'file' ]; then
         for ((j=1; j<${#files[*]}; j++)); do
-
             key=${files[$j]}
             i=$((j - 1))
             con_key=$(basename "$key")
@@ -233,11 +231,10 @@ for path in ${paths[*]}; do
         done
     elif [ $SORTBY = 'size' ]; then
         for ((j=1; j<${#files[*]}; j++)); do
-
             key=${files[$j]}
             i=$((j - 1))
-            con_key=$(cat "$key" 2>/dev/null | wc -c)
-            while [ $i \> -1 ] && [ $(cat "${files[$i]}" 2>/dev/null | wc -c) -gt ${con_key} ]; do
+            con_key=$(ls -al "$key" | awk '{print $5}')
+            while [ $i \> -1 ] && [ $(ls -al "${files[$i]}" | awk '{print $5}') -gt ${con_key} ]; do
                 files[$((i + 1))]=${files[$i]};
                 ((i--));
             done
@@ -245,11 +242,10 @@ for path in ${paths[*]}; do
         done
     elif [ $SORTBY = 'date' ]; then
         for ((j=1; j<${#files[*]}; j++)); do
-
             key=${files[$j]}
             i=$((j - 1))
-            con_key=$(date +%Y%m%d%H%M%S -r "$key")
-            while [ $i \> -1 ] && [ $(date +%Y%m%d%H%M%S -r "${files[$i]}") -gt ${con_key} ]; do
+            con_key=$(ls -al "$key" | awk '{print $6$7}')
+            while [ $i \> -1 ] && [ $(ls -al "${files[$i]}" | awk '{print $6$7}') \> ${con_key} ]; do
                 files[$((i + 1))]=${files[$i]};
                 ((i--));
             done
@@ -258,6 +254,19 @@ for path in ${paths[*]}; do
     fi
 
     for ((i=0; i<${#files[*]}; i++)); do
-        echo ${files[$i]}
+        filename=${files[$i]}
+
+        if [ $OUTPUT = 'abs' ]; then
+            echo $filename
+        elif [ $OUTPUT = 'rel' ]; then
+            filename=${filename##*$path}
+            if [ $(echo $filename | cut -c1) = '/' ]; then
+                filename=${filename##/}
+            fi
+            echo $filename
+        elif [ $OUTPUT = 'bsn' ]; then
+            filename=$(basename $filename)
+            echo $filename
+        fi
     done
 done
