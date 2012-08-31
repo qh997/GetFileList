@@ -30,13 +30,9 @@ function init {
         exit 0
     fi
 
-    #: ${HELP:=0}
     : ${FTYPE:='reg'}
-    #: ${SRCHDEP:=0}
-    : ${REV:=0}
     : ${SORTBY:='path'}
     : ${OUTPUT:='rel'}
-    #: ${GROUP:=0}
     : ${DEBUG:=0}
 
     debug 1 "HELP = $HELP"
@@ -253,20 +249,39 @@ for path in ${paths[*]}; do
         done
     fi
 
-    for ((i=0; i<${#files[*]}; i++)); do
-        filename=${files[$i]}
+    if [ $REV ]; then
+        for ((i=${#files[*]} - 1; i>=0; i--)); do
+            filename=${files[$i]}
 
-        if [ $OUTPUT = 'abs' ]; then
-            echo $filename
-        elif [ $OUTPUT = 'rel' ]; then
-            filename=${filename##*$path}
-            if [ $(echo $filename | cut -c1) = '/' ]; then
-                filename=${filename##/}
+            if [ $OUTPUT = 'abs' ]; then
+                echo $filename
+            elif [ $OUTPUT = 'rel' ]; then
+                filename=${filename##*$path}
+                if [ $(echo $filename | cut -c1) = '/' ]; then
+                    filename=${filename##/}
+                fi
+                echo $filename
+            elif [ $OUTPUT = 'bsn' ]; then
+                filename=$(basename $filename)
+                echo $filename
             fi
-            echo $filename
-        elif [ $OUTPUT = 'bsn' ]; then
-            filename=$(basename $filename)
-            echo $filename
-        fi
-    done
+        done
+    else
+        for ((i=0; i<${#files[*]}; i++)); do
+            filename=${files[$i]}
+
+            if [ $OUTPUT = 'abs' ]; then
+                echo $filename
+            elif [ $OUTPUT = 'rel' ]; then
+                filename=${filename##*$path}
+                if [ $(echo $filename | cut -c1) = '/' ]; then
+                    filename=${filename##/}
+                fi
+                echo $filename
+            elif [ $OUTPUT = 'bsn' ]; then
+                filename=$(basename $filename)
+                echo $filename
+            fi
+        done
+    fi
 done
