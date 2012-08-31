@@ -38,7 +38,7 @@ if ($SORTBY ne 'null') {
                    } @{$file_list{$_}}]]
             for (@paths);
     }
-    elsif ($SORTBY eq 'name') {
+    elsif ($SORTBY eq 'file') {
         push @sorted_list, [$_, [sort {$a->{file} cmp $b->{file}} @{$file_list{$_}}]] for (@paths);
     }
     elsif ($SORTBY eq 'size' || $SORTBY eq 'date') {
