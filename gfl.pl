@@ -217,7 +217,7 @@ gfl.pl [options] [path ...]
   -d <depth>, --depth <depth>
   -r, --reverse
   -s {path|file|size|date}, --sort-by {path|file|size|date|null}
-  -p {abs|rel|bsn}, --output {abs|rel|bsn}
+  -o {abs|rel|bsn}, --output {abs|rel|bsn}
   -g, --group
   --debug <debug-level>
   -v, --version
@@ -286,7 +286,7 @@ Use default order.
 
 =back
 
-=item -p {abs|rel|bsn}, --optput {abs|rel|bsn}
+=item -o {abs|rel|bsn}, --output {abs|rel|bsn}
 
 Specify the key of sort.
 
