@@ -35,21 +35,33 @@ function init {
     : ${OUTPUT:='rel'}
     : ${DEBUG:=0}
 
-    debug 1 "HELP = $HELP"
+    if ! [ $DEBUG -a "$DEBUG" -le 0 -o "$DEBUG" -ge 0 ] 2>/dev/null; then
+        echo "Value '$DEBUG' invalid for option --debug (number expected)"
+        usage
+        exit 1
+    fi
 
     local declare mvalue=$FTYPE
     for value in $mvalue; do
         check_option_value '-t/--type' $value 'reg dir sym'
     done
-    debug 1 "FTYPE = $FTYPE"
-
-    debug 1 "SRCHDEP = $SRCHDEP"
-    debug 1 "REV = $REV"
 
     check_option_value '-s/--sort-by' $SORTBY 'path file size date null'
-    debug 1 "SORTBY = $SORTBY"
-
     check_option_value '-o/--output' $OUTPUT 'abs rel bsn'
+
+    if [ $SRCHDEP ]; then
+        if ! [ -a "$SRCHDEP" -le 0 -o "$SRCHDEP" -ge 0 ] 2>/dev/null; then
+            echo "Value '$SRCHDEP' invalid for option -d/--depth (number expected)"
+            usage
+            exit 1
+        fi
+    fi
+
+    debug 1 "HELP = $HELP"
+    debug 1 "FTYPE = $FTYPE"
+    debug 1 "SRCHDEP = $SRCHDEP"
+    debug 1 "REV = $REV"
+    debug 1 "SORTBY = $SORTBY"
     debug 1 "OUTPUT = $OUTPUT"
     debug 1 "GROUP = $GROUP"
     debug 1 "DEBUG = $DEBUG"
@@ -69,13 +81,13 @@ Usage:
 
       Options:
       -h, --help
-      -t {reg,dir,sym}, --type {reg,dir,sym}
-      -d DEPTH, --depth DEPTH
+      -t {reg|dir|sym}, --type {reg|dir|sym}
+      -d <depth>, --depth <depth>
       -r, --reverse
-      -s {path,file,size,date}, --sort-by {path,file,size,date,null}
-      -o {abs,rel,bsn}, --output {abs,rel,bsn}
+      -s {path|file|size|date}, --sort-by {path|file|size|date|null}
+      -o {abs|rel|bsn}, --output {abs|rel|bsn}
       -g, --group
-      --debug DEBUG-LEVEL
+      --debug <debug-level>
       -v, --version
 EOF
 
@@ -86,20 +98,20 @@ Options:
     -h, --help
             Show this help message and exit.
 
-    -t {reg, dir, sym}, --type {reg, dir, sym}
+    -t {reg|dir|sym}, --type {reg|dir|sym}
             Specify the file type of the searching.
 
             {reg}   Regular file.
             {dir}   Directory.
             {sym}   Symbolic link.
 
-    -d DEPTH, --depth DEPTH
+    -d <depth>, --depth <depth>
             Specify the depth of the searching.
 
     -r, --reverse
             Reverse the result.
 
-    -s {path,file,size,date}, --sort-by {path,file,size,date,null}
+    -s {path|file|size|date}, --sort-by {path|file|size|date|null}
             Specify the key of sort.
 
             {path}  Sort by path name.
@@ -108,7 +120,7 @@ Options:
             {date}  Sort by time of last modification.
             {null}  Use default order.
 
-    -o {abs,rel,bsn}, --optput {abs,rel,bsn}
+    -o {abs|rel|bsn}, --optput {abs|rel|bsn}
             Specify the key of sort.
 
             {abs}   Absolute path.
@@ -118,7 +130,7 @@ Options:
     -g, --group
             Frouping the result.
 
-    --debug DEBUG-LEVEL
+    --debug <debug-level>
             Set the debug level.
 
     -v, --version

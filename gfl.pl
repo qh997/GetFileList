@@ -213,24 +213,24 @@ gfl.pl [options] [path ...]
 
   Options:
   -h, --help
-  -t {reg,dir,sym}, --type {reg,dir,sym}
-  -d DEPTH, --depth DEPTH
+  -t {reg|dir|sym}, --type {reg|dir|sym}
+  -d <depth>, --depth <depth>
   -r, --reverse
-  -s {path,file,size,date}, --sort-by {path,file,size,date,null}
-  -p {abs,rel,bsn}, --output {abs,rel,bsn}
+  -s {path|file|size|date}, --sort-by {path|file|size|date|null}
+  -p {abs|rel|bsn}, --output {abs|rel|bsn}
   -g, --group
-  --debug DEBUG-LEVEL
+  --debug <debug-level>
   -v, --version
 
 =head1 OPTIONS
 
 =over 8
 
-=item B<-h, --help>
+=item -h, --help
 
 Show this help message and exit.
 
-=item B<-t {reg, dir, sym}, --type {reg, dir, sym}>
+=item -t {reg|dir|sym}, --type {reg|dir|sym}
 
 Specify the file type of the searching.
 
@@ -250,7 +250,7 @@ Symbolic link.
 
 =back
 
-=item B<-d DEPTH, --depth DEPTH>
+=item -d <depth>, --depth <depth>
 
 Specify the depth of the searching.
 
@@ -258,7 +258,7 @@ Specify the depth of the searching.
 
 Reverse the result.
 
-=item B<-s {path,file,size,date}, --sort-by {path,file,size,date,null}>
+=item -s {path|file|size|date}, --sort-by {path|file|size|date|null}
 
 Specify the key of sort.
 
@@ -286,7 +286,7 @@ Use default order.
 
 =back
 
-=item B<-p {abs,rel,bsn}, --optput {abs,rel,bsn}>
+=item -p {abs|rel|bsn}, --optput {abs|rel|bsn}
 
 Specify the key of sort.
 
@@ -306,15 +306,15 @@ File name only.
 
 =back
 
-=item B<-g, --group>
+=item -g, --group
 
 Frouping the result.
 
-=item B<--debug DEBUG-LEVEL>
+=item --debug <debug-level>
 
 Set the debug level.
 
-=item B<-v, --version>
+=item -v, --version
 
 Display the version of this program and exit.
 
