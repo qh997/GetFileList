@@ -1,5 +1,20 @@
 #include "common.h"
 
+static int debugLevel = 0;
+
+bool is_debug(int lev){return debugLevel >= lev ? TRUE : FALSE;}
+
+Status setopt_debuglevel(const char *value)
+{
+    int ivalue;
+    if (ERROR == string_to_int(value, &ivalue))
+        return ERROR;
+    else
+        debugLevel = ivalue;
+
+    return OK;
+}
+
 Status string_to_int(const char *nprt, int *num)
 {
     char c;

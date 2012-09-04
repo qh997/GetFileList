@@ -4,7 +4,6 @@ static int boolOptions = 0;
 static int depth = 0;
 static OptSortBy sortBy = OSB_PATH;
 static OptOutput output = OOP_REL;
-static int debugLevel = 0;
 static char **dirpaths = NULL;
 
 static void remove_last_separator(char *dir);
@@ -181,6 +180,8 @@ Status setopt_depth(const char *value)
         return ERROR;
     else
         depth = ivalue;
+
+    return OK;
 }
 
 bool getopt_reverse(){return boolOptions & OPT_REVE;}
@@ -239,19 +240,6 @@ Status setopt_group(const bool value)
         boolOptions |= OPT_GRUP;
     else
         boolOptions &= ~OPT_GRUP;
-
-    return OK;
-}
-
-bool is_debug(int lev){return debugLevel >= lev ? TRUE : FALSE;}
-
-Status setopt_debuglevel(const char *value)
-{
-    int ivalue;
-    if (ERROR == string_to_int(value, &ivalue))
-        return ERROR;
-    else
-        debugLevel = ivalue;
 
     return OK;
 }
@@ -329,8 +317,8 @@ Options:\n\
 static void remove_last_separator(char *dir)
 {
     int dir_length = strlen(dir);
-    debug_var(3, "%d", dir_length);
-    if (0 < dir_length && '/' == *(dir + dir_length - 1))
+    DEBUG_VAR(3, "%d", dir_length);
+    if (0 < dir_length && PATHSEPC == *(dir + dir_length - 1))
     {
         *(dir + dir_length - 1) = '\0';
     }

@@ -9,5 +9,6 @@
 #include "dirbox.h"
 
 void debug_args();
+void PrintBabys(DirBox *dbox, char *dpath, int dep);
 
 #endif //_GFL_H

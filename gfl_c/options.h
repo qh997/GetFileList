@@ -59,9 +59,6 @@ Status setopt_output(const char *value);
 bool getopt_group();
 Status setopt_group(const bool value);
 
-bool is_debug(int lev);
-Status setopt_debuglevel(const char *value);
-
 char **get_dirpaths();
 
 void usage(bool verbose);

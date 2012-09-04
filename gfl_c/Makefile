@@ -2,6 +2,7 @@ OBJECT := gfl.o
 OBJECT += common.o
 OBJECT += options.o
 OBJECT += dirbox.o
+OBJECT += filebox.o
 
 ifneq ($(CC), gcc)
 CC := gcc
