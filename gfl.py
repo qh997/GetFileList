@@ -97,6 +97,7 @@ def getFileList(path, depth, ftype):
                 if stat.S_ISDIR(st.st_mode):
                     dirlist += getFileList(fullname, depth - 1, ftype)
                     if 'dir' in ftype:
+                        fullname = fullname + os.path.sep
                         isappend = True
                 elif 'reg' in ftype and stat.S_ISREG(st.st_mode):
                     isappend = True
