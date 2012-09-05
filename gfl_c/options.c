@@ -117,7 +117,7 @@ Status option_parse(int argc, char **argv)
             paths++;
         }
         *paths = (char *)malloc(2);
-        strcpy(*paths, "#");
+        strcpy(*paths, "\0");
     }
     else
     {
@@ -129,7 +129,7 @@ Status option_parse(int argc, char **argv)
         remove_last_separator(*dirpaths);
 
         *(dirpaths + 1) = (char *)malloc(2);
-        strcpy(*(dirpaths + 1), "#");
+        strcpy(*(dirpaths + 1), "\0");
     }
 
     return OK;

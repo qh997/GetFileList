@@ -3,6 +3,7 @@ OBJECT += common.o
 OBJECT += options.o
 OBJECT += dirbox.o
 OBJECT += filebox.o
+OBJECT += outqueue.o
 
 ifneq ($(CC), gcc)
 CC := gcc

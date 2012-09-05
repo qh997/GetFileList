@@ -16,5 +16,7 @@ typedef struct fileBox
 } FileBox;
 
 Status InitFileBox(FileBox *fbox, char *filename, struct stat *filestat);
+int FileSizeOf(FileBox *fbox);
+int FileDateOf(FileBox *fbox);
 
 #endif //_FILEBOX_H

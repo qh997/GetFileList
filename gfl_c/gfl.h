@@ -7,8 +7,10 @@
 #include "common.h"
 #include "options.h"
 #include "dirbox.h"
+#include "outqueue.h"
 
 void debug_args();
 void PrintBabys(DirBox *dbox, char *dpath, int dep);
+void MakeQueueList(DirBox *dbox, char *dpath, int dep);
 
 #endif //_GFL_H

@@ -27,9 +27,11 @@ typedef void (pDealWithChild)(DirBox *, char *, int);
 
 Status FillDirBox(char *dpath, DirBox *dbox);
 
-Status InitDirBox(DirBox *dbox, const char *dname);
+Status InitDirBox(DirBox *dbox, const char *dname, struct stat *dirstat);
 Status AddChild(DirBox *dbox, DirBox *dchild);
 Status AddBaby(DirBox *dbox, FileBox *fbaby);
+int DirSizeOf(DirBox *dbox);
+int DirDateOf(DirBox *dbox);
 Status ForEachChild(DirBox *dbox, char *parent, int depth, pDealWithChild *dwc);
 
 #endif //_DIRBOX_H

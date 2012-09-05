@@ -25,7 +25,7 @@ Status FillDirBox(char *dpath, DirBox *dbox)
                 DirBox *subDir;
                 if (NULL != (subDir = (DirBox *)malloc(sizeof(DirBox))))
                 {
-                    InitDirBox(subDir, entry->d_name);
+                    InitDirBox(subDir, entry->d_name, &statbuf);
                     FillDirBox(fpath, subDir);
 
                     AddChild(dbox, subDir);
@@ -66,12 +66,19 @@ Status FillDirBox(char *dpath, DirBox *dbox)
     return OK;
 }
 
-Status InitDirBox(DirBox *dbox, const char *dname)
+Status InitDirBox(DirBox *dbox, const char *dname, struct stat *dirstat)
 {
     if (dbox == NULL)
         return ERROR;
 
     strcpy(dbox->name, dname);
+    if (NULL != dirstat)
+    {
+        dbox->dstat = (struct stat *)malloc(sizeof(struct stat));
+        memcpy(dbox->dstat, dirstat, sizeof(struct stat));
+    }
+    else
+        dbox->dstat = NULL;
     dbox->child_count = 0;
     dbox->child = NULL;
     dbox->baby_count = 0;
@@ -129,6 +136,16 @@ Status AddBaby(DirBox *dbox, FileBox *fbaby)
     }
 
     return OK;
+}
+
+int DirSizeOf(DirBox *dbox)
+{
+    return dbox->dstat->st_size;
+}
+
+int DirDateOf(DirBox *dbox)
+{
+    return dbox->dstat->st_mtime;
 }
 
 Status ForEachChild(DirBox *dbox, char *parent, int depth, pDealWithChild *dwc)
