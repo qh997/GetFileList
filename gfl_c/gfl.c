@@ -10,8 +10,17 @@ int main(int argc, char **argv)
 
     char **dir = get_dirpaths();
 
+    bool frist_g = TRUE;
     while (0 != strcmp("\0", *dir))
     {
+        if (getopt_group())
+        {
+            if (!frist_g)
+                printf("\n");
+            printf("%s\n", *dir);
+            frist_g = FALSE;
+        }
+
         DirBox *dirBox = (DirBox *)malloc(sizeof(DirBox));
         InitDirBox(dirBox, *dir, NULL);
         FillDirBox(*dir++, dirBox);

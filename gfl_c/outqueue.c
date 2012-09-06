@@ -48,6 +48,7 @@ Status AddQueueNode(QueueList *Q, QueueNode *QN)
 
     while (NULL != Q->rear && 0 <= queuenode_cmp(QN, Q->rear))
         Q = Q->rear;
+
     QueueList *qr = Q->rear;
     QN->front = Q;
     QN->rear = qr;
