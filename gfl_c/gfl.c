@@ -33,11 +33,26 @@ int main(int argc, char **argv)
         else
             ForEachChild(dirBox, "", 1, MakeQueueList);
 
-        QueueList *rstlist = QList->rear;
-        while (NULL != rstlist)
+        if (getopt_reverse())
         {
-            printf("%s\n", rstlist->mainstr);
-            rstlist = rstlist->rear;
+            QueueList *rstlist = QList->rear;
+            while (NULL != rstlist->rear)
+                rstlist = rstlist->rear;
+
+            while (NULL != rstlist->front->front)
+            {
+                printf("%s\n", rstlist->mainstr);
+                rstlist = rstlist->front;
+            }
+        }
+        else
+        {
+            QueueList *rstlist = QList->rear;
+            while (NULL != rstlist)
+            {
+                printf("%s\n", rstlist->mainstr);
+                rstlist = rstlist->rear;
+            }
         }
     }
 
