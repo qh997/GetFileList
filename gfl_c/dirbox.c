@@ -1,34 +1,34 @@
 #include "dirbox.h"
 
-Status FillDirBox(char *dpath, DirBox *dbox)
+Status fill_dirbox(ST_DirBox *dirbox, char *dirpath)
 {
-    DEBUG_LOG(3, "FillDirBox : %s", dpath);
+    DEBUG_LOG(3, "fill_dirbox : %s", dirpath);
 
-    DIR *dir = opendir(dpath);
-    if (NULL != dir)
+    DIR *dir_handle = opendir(dirpath);
+    if (NULL != dir_handle)
     {
         struct dirent *entry = NULL;
-        while (NULL != (entry = readdir(dir)))
+        while (NULL != (entry = readdir(dir_handle)))
         {
-            char fpath[FILENAME_MAX];
-            strcat(strcat(strcpy(fpath, dpath), PATHSEPS), entry->d_name);
-            struct stat statbuf;
-            lstat(fpath, &statbuf);
+            char entry_path[FILENAME_MAX];
+            strcat(strcat(strcpy(entry_path, dirpath), PATHSEPS), entry->d_name);
+            struct stat entry_stat;
+            lstat(entry_path, &entry_stat);
 
-            if(S_ISDIR(statbuf.st_mode))
+            if(S_ISDIR(entry_stat.st_mode))
             {
                 if(0 == strcmp(".", entry->d_name) || 0 == strcmp("..", entry->d_name))
                     continue;
 
-                DEBUG_VAR(2, "%s", fpath);
+                DEBUG_VAR(2, "%s", entry_path);
 
-                DirBox *subDir;
-                if (NULL != (subDir = (DirBox *)malloc(sizeof(DirBox))))
+                ST_DirBox *child_dirbox;
+                if (NULL != (child_dirbox = (ST_DirBox *)malloc(sizeof(ST_DirBox))))
                 {
-                    InitDirBox(subDir, entry->d_name, &statbuf);
-                    FillDirBox(fpath, subDir);
+                    init_dirbox(child_dirbox, entry->d_name, &entry_stat);
+                    fill_dirbox(child_dirbox, entry_path);
 
-                    AddChild(dbox, subDir);
+                    add_dirbox_child(dirbox, child_dirbox);
                 }
                 else
                 {
@@ -40,13 +40,13 @@ Status FillDirBox(char *dpath, DirBox *dbox)
             {
                 DEBUG_LOG(2, "find file: %s", entry->d_name);
 
-                FileBox *infile = NULL;
-                if (NULL != (infile = (FileBox *)malloc(sizeof(FileBox))))
+                ST_FileBox *infile = NULL;
+                if (NULL != (infile = (ST_FileBox *)malloc(sizeof(ST_FileBox))))
                 {
-                    InitFileBox(infile, entry->d_name, &statbuf);
-                    DEBUG_LOG(5, "InitFileBox OK", "");
-                    AddBaby(dbox, infile);
-                    DEBUG_LOG(5, "AddBaby OK", "");
+                    init_filebox(infile, entry->d_name, &entry_stat);
+                    DEBUG_LOG(5, "init_filebox OK", "");
+                    add_dirbox_baby(dirbox, infile);
+                    DEBUG_LOG(5, "add_dirbox_baby OK", "");
                 }
                 else
                 {
@@ -56,116 +56,117 @@ Status FillDirBox(char *dpath, DirBox *dbox)
             }
         }
 
-        closedir(dir);
+        closedir(dir_handle);
     }
     else
     {
-        fprintf(stderr, "Cannot open directory: %s\n", dpath);
+        fprintf(stderr, "Cannot open directory: %s\n", dirpath);
     }
 
     return OK;
 }
 
-Status InitDirBox(DirBox *dbox, const char *dname, struct stat *dirstat)
+Status init_dirbox(ST_DirBox *dirbox, const char *dirname, struct stat *dirstat)
 {
-    if (dbox == NULL)
+    if (dirbox == NULL)
         return ERROR;
 
-    strcpy(dbox->name, dname);
+    strcpy(dirbox->name, dirname);
+
     if (NULL != dirstat)
     {
-        dbox->dstat = (struct stat *)malloc(sizeof(struct stat));
-        memcpy(dbox->dstat, dirstat, sizeof(struct stat));
+        dirbox->info = (struct stat *)malloc(sizeof(struct stat));
+        memcpy(dirbox->info, dirstat, sizeof(struct stat));
     }
     else
-        dbox->dstat = NULL;
-    dbox->child_count = 0;
-    dbox->child = NULL;
-    dbox->baby_count = 0;
-    dbox->baby = NULL;
+        dirbox->info = NULL;
 
-    dbox->front = NULL;
-    dbox->rear = NULL;
+    dirbox->child_count = 0;
+    dirbox->child = NULL;
+    dirbox->baby_count = 0;
+    dirbox->baby = NULL;
+
+    dirbox->front = NULL;
+    dirbox->rear = NULL;
 
     return OK;
 }
 
-Status AddChild(DirBox *dbox, DirBox *dchild)
+Status add_dirbox_child(ST_DirBox *dirbox, ST_DirBox *child_box)
 {
-    if (dbox == NULL)
+    if (dirbox == NULL)
         return ERROR;
 
-    (dbox->child_count)++;
-    if (NULL != dbox->child)
+    (dirbox->child_count)++;
+    if (NULL != dirbox->child)
     {
-        dbox = dbox->child;
-        while (NULL != dbox->rear)
+        dirbox = dirbox->child;
+        while (NULL != dirbox->rear)
         {
-            dbox = dbox->rear;
+            dirbox = dirbox->rear;
         }
-        dbox->rear = dchild;
-        dchild->front = dbox;
+        dirbox->rear = child_box;
+        child_box->front = dirbox;
     }
     else
     {
-        dbox->child = dchild;
+        dirbox->child = child_box;
     }
 
     return OK;
 }
 
-Status AddBaby(DirBox *dbox, FileBox *fbaby)
+Status add_dirbox_baby(ST_DirBox *dirbox, ST_FileBox *filebox)
 {
-    if (dbox == NULL)
+    if (dirbox == NULL)
         return ERROR;
 
-    (dbox->baby_count)++;
-    if (NULL != dbox->baby)
+    (dirbox->baby_count)++;
+    if (NULL != dirbox->baby)
     {
-        FileBox *fbox = dbox->baby;
+        ST_FileBox *dirbox_baby = dirbox->baby;
 
-        while (NULL != fbox->rear)
-            fbox = fbox->rear;
+        while (NULL != dirbox_baby->rear)
+            dirbox_baby = dirbox_baby->rear;
 
-        fbox->rear = fbaby;
-        fbaby->front = fbox;
+        dirbox_baby->rear = filebox;
+        filebox->front = dirbox_baby;
     }
     else
     {
-        dbox->baby = fbaby;
+        dirbox->baby = filebox;
     }
 
     return OK;
 }
 
-int DirSizeOf(DirBox *dbox)
+off_t get_dirbox_size(ST_DirBox *dirbox)
 {
-    return dbox->dstat->st_size;
+    return dirbox->info->st_size;
 }
 
-int DirDateOf(DirBox *dbox)
+time_t get_dirbox_date(ST_DirBox *dirbox)
 {
-    return dbox->dstat->st_mtime;
+    return dirbox->info->st_mtime;
 }
 
-Status ForEachChild(DirBox *dbox, char *parent, int depth, pDealWithChild *dwc)
+void for_each_child(ST_DirBox *dirbox, char *current_path, int current_depth, FN_ChildBehavior *action)
 {
-    DEBUG_VAR(3, "%s", parent);
-    DirBox *childbox = dbox->child;
+    DEBUG_VAR(3, "%s", current_path);
+    ST_DirBox *children = dirbox->child;
 
-    char fpath[FILENAME_MAX];
-    strcpy(fpath, parent);
-    if (0 != strcmp(parent, "")) strcat(fpath, PATHSEPS);
+    if (0 != strcmp(current_path, ""))
+        strcat(current_path, PATHSEPS);
 
-    while (NULL != childbox)
+    while (NULL != children)
     {
-        char fcpath[FILENAME_MAX];
-        strcpy(fcpath, fpath);
-        strcat(fcpath, childbox->name);
+        char child_path[FILENAME_MAX];
+        strcpy(child_path, current_path);
+        strcat(child_path, children->name);
 
-        ForEachChild(childbox, fcpath, depth + 1, dwc);
-        childbox = childbox->rear;
+        for_each_child(children, child_path, current_depth + 1, action);
+        children = children->rear;
     }
 
-    dwc(dbox, fpath, depth);
+    action(dirbox, current_path, current_depth);
 }

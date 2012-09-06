@@ -1,5 +1,5 @@
-#ifndef _DIRBOX_H
-#define _DIRBOX_H
+#ifndef __DIRBOX_H__
+#define __DIRBOX_H__
 
 #include <dirent.h>
 #include <unistd.h>
@@ -8,30 +8,29 @@
 #include "common.h"
 #include "filebox.h"
 
-typedef struct dirBox
+typedef struct st_dirbox
 {
     char name[FILENAME_MAX];
-    struct stat *dstat;
+    struct stat *info;
 
     int child_count;
-    struct dirBox *child;
+    struct st_dirbox *child;
 
     int baby_count;
-    FileBox *baby;
+    ST_FileBox *baby;
 
-    struct dirBox *front;
-    struct dirBox *rear;
-} DirBox;
+    struct st_dirbox *front;
+    struct st_dirbox *rear;
+} ST_DirBox;
 
-typedef void (pDealWithChild)(DirBox *, char *, int);
+typedef void FN_ChildBehavior(ST_DirBox *, char *, int);
 
-Status FillDirBox(char *dpath, DirBox *dbox);
+Status fill_dirbox(ST_DirBox *dirbox, char *dirpath);
+Status init_dirbox(ST_DirBox *dirbox, const char *dirname, struct stat *dirstat);
+Status add_dirbox_child(ST_DirBox *parent_box, ST_DirBox *child_box);
+Status add_dirbox_baby(ST_DirBox *dbox, ST_FileBox *fbaby);
+off_t get_dirbox_size(ST_DirBox *dirbox);
+time_t get_dirbox_date(ST_DirBox *dirbox);
+void for_each_child(ST_DirBox *dirbox, char *current_path, int current_depth, FN_ChildBehavior *action);
 
-Status InitDirBox(DirBox *dbox, const char *dname, struct stat *dirstat);
-Status AddChild(DirBox *dbox, DirBox *dchild);
-Status AddBaby(DirBox *dbox, FileBox *fbaby);
-int DirSizeOf(DirBox *dbox);
-int DirDateOf(DirBox *dbox);
-Status ForEachChild(DirBox *dbox, char *parent, int depth, pDealWithChild *dwc);
-
-#endif //_DIRBOX_H
+#endif //__DIRBOX_H__

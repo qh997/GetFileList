@@ -1,26 +1,31 @@
 #include "filebox.h"
 
-Status InitFileBox(FileBox *fbox, char *filename, struct stat *filestat)
+Status init_filebox(ST_FileBox *filebox, char *filename, struct stat *filestat)
 {
-    if (NULL == fbox)
+    if (NULL == filebox)
         return ERROR;
 
-    strcpy(fbox->fname, filename);
-    fbox->fstat = (struct stat *)malloc(sizeof(struct stat));
-    memcpy(fbox->fstat, filestat, sizeof(struct stat));
+    strcpy(filebox->name, filename);
+    filebox->info = (struct stat *)malloc(sizeof(struct stat));
+    memcpy(filebox->info, filestat, sizeof(struct stat));
 
-    fbox->front = NULL;
-    fbox->rear = NULL;
+    filebox->front = NULL;
+    filebox->rear = NULL;
 
     return OK;
 }
 
-int FileSizeOf(FileBox *fbox)
+mode_t get_filebox_mode(ST_FileBox *filebox)
 {
-    return fbox->fstat->st_size;
+    return filebox->info->st_mode;
 }
 
-int FileDateOf(FileBox *fbox)
+off_t get_filebox_size(ST_FileBox *filebox)
 {
-    return fbox->fstat->st_mtime;
+    return filebox->info->st_size;
+}
+
+time_t get_filebox_date(ST_FileBox *filebox)
+{
+    return filebox->info->st_mtime;
 }

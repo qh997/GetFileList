@@ -1,5 +1,5 @@
-#ifndef _GFL_H
-#define _GFL_H
+#ifndef __GFL_H__
+#define __GFL_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,10 +7,9 @@
 #include "common.h"
 #include "options.h"
 #include "dirbox.h"
-#include "outqueue.h"
+#include "queuelist.h"
 
 void debug_args();
-void PrintBabys(DirBox *dbox, char *dpath, int dep);
-void MakeQueueList(DirBox *dbox, char *dpath, int dep);
+void fill_result_list(ST_DirBox *dbox, char *dpath, int dep);
 
-#endif //_GFL_H
+#endif //__GFL_H__

@@ -1,17 +1,24 @@
 #include "options.h"
 
-static int boolOptions = 0;
-static int depth = 0;
-static OptSortBy sortBy = OSB_PATH;
-static OptOutput output = OOP_REL;
-static char **dirpaths = NULL;
+static int _s_bool_settings = 0;
+static int _s_depth = 0;
+static EN_OptSortBy _s_sort_by = OSB_PATH;
+static EN_OptOutput _s_output = OOP_REL;
+static char **_s_dirpaths = NULL;
 
-static void remove_last_separator(char *dir);
+static Status _setopt_filetype(const char *value, const bool unset);
+static Status _setopt_depth(const char *value);
+static Status _setopt_reverse(const bool value);
+static Status _setopt_sortby(const char *value);
+static Status _setopt_output(const char *value);
+static Status _setopt_group(const bool value);
+static void _remove_trailing_separator(char *dir);
+static void _init_filetype();
 
-Status option_parse(int argc, char **argv)
+Status parse_args(int argc, char **argv)
 {
-    const char *shortopts = "ht:d:rs:o:g";
-    const struct option longopts[] =
+    const char *short_opts = "ht:d:rs:o:g";
+    const struct option long_opts[] =
     {
         {"help", no_argument, NULL, 'h'},
         {"type", required_argument, NULL, 't'},
@@ -24,82 +31,82 @@ Status option_parse(int argc, char **argv)
         {0, 0, 0, 0}
     };
 
-    while (TRUE)
+    while (true)
     {
         int opt_index = 0;
-        int current_option = getopt_long(argc, argv, shortopts, longopts, &opt_index);
+        int current_option = getopt_long(argc, argv, short_opts, long_opts, &opt_index);
 
         if (-1 == current_option)
         {
-            init_filetype();
+            _init_filetype();
             break;
         }
 
         switch (current_option)
         {
             case 'h':
-                usage(TRUE);
+                usage(true);
                 exit(0);
                 break;
 
             case 't':
-                if (ERROR == setopt_filetype(optarg, FALSE))
+                if (ERROR == _setopt_filetype(optarg, false))
                 {
                     fprintf(stderr, "Value '%s' invalid for option -t/--type (choose 'reg', 'dir', 'sym')\n", optarg);
-                    usage(FALSE);
+                    usage(false);
                     return ERROR;
                 }
                 break;
 
             case 'd':
-                if (ERROR == setopt_depth(optarg))
+                if (ERROR == _setopt_depth(optarg))
                 {
                     fprintf(stderr, "Value '%s' invalid for option -d/--depth (number expected)\n", optarg);
-                    usage(FALSE);
+                    usage(false);
                     return ERROR;
                 }
                 break;
 
             case 'r':
-                setopt_reverse(TRUE);
+                _setopt_reverse(true);
                 break;
 
             case 's':
-                if (ERROR == setopt_sortby(optarg))
+                if (ERROR == _setopt_sortby(optarg))
                 {
                     fprintf(stderr, "Value '%s' invalid for option -s/--sort-by", optarg);
                     fprintf(stderr, " (choose 'path', 'file', 'size', 'date', 'null')\n");
-                    usage(FALSE);
+                    usage(false);
                     return ERROR;
                 }
                 break;
 
             case 'o':
-                if (ERROR == setopt_output(optarg))
+                if (ERROR == _setopt_output(optarg))
                 {
                     fprintf(stderr, "Value '%s' invalid for option -o/--output", optarg);
                     fprintf(stderr, " (choose 'abs', 'rel', 'bsn')\n");
-                    usage(FALSE);
+                    usage(false);
                     return ERROR;
                 }
                 break;
                 break;
 
             case 'g':
-                setopt_group(TRUE);
+                _setopt_group(true);
                 break;
 
             case 'b':
-                if (ERROR == setopt_debuglevel(optarg))
+                if (ERROR == set_debug_level(optarg))
                 {
                     fprintf(stderr, "Value '%s' invalid for option --debug (number expected)\n", optarg);
-                    usage(FALSE);
+                    usage(false);
                     return ERROR;
                 }
                 break;
 
             case '?':
-                usage(FALSE);
+                usage(false);
             default:
                 return ERROR;
         }
@@ -107,13 +114,13 @@ Status option_parse(int argc, char **argv)
 
     if (optind < argc)
     {
-        dirpaths = (char **)malloc(sizeof(char *) * (argc - optind + 1));
-        char **paths = dirpaths;
+        _s_dirpaths = (char **)malloc(sizeof(char *) * (argc - optind + 1));
+        char **paths = _s_dirpaths;
         for (int i = optind; i < argc; i++)
         {
             *paths = (char *)malloc(strlen(*(argv + i)) + 1);
             strcpy(*paths, *(argv + i));
-            remove_last_separator(*paths);
+            _remove_trailing_separator(*paths);
             paths++;
         }
         *paths = (char *)malloc(2);
@@ -123,130 +130,33 @@ Status option_parse(int argc, char **argv)
     {
         char crt_dir[FILENAME_MAX];
         getcwd(crt_dir, FILENAME_MAX);
-        dirpaths = (char **)malloc(sizeof(char *) * 2);
-        *dirpaths = (char *)malloc(strlen(crt_dir) + 1);
-        strcpy(*dirpaths, crt_dir);
-        remove_last_separator(*dirpaths);
+        _s_dirpaths = (char **)malloc(sizeof(char *) * 2);
+        *_s_dirpaths = (char *)malloc(strlen(crt_dir) + 1);
+        strcpy(*_s_dirpaths, crt_dir);
+        _remove_trailing_separator(*_s_dirpaths);
 
-        *(dirpaths + 1) = (char *)malloc(2);
-        strcpy(*(dirpaths + 1), "\0");
+        *(_s_dirpaths + 1) = (char *)malloc(2);
+        strcpy(*(_s_dirpaths + 1), "\0");
     }
 
     return OK;
 }
 
-bool getopt_filetype(const OptFileType value){return boolOptions & value;}
+bool getopt_filetype(const EN_OptFileType value) {return _s_bool_settings & value;}
 
-Status setopt_filetype(const char *value, const bool unset)
-{
-    if (unset)
-    {
-        if (0 == strcmp(value, "reg"))
-            boolOptions &= ~OFT_REG;
-        else if(0 == strcmp(value, "dir"))
-            boolOptions &= ~OFT_DIR;
-        else if(0 == strcmp(value, "sym"))
-            boolOptions &= ~OFT_SYM;
-        else
-            return ERROR;
-    }
-    else
-    {
-        if (0 == strcmp(value, "reg"))
-            boolOptions |= OFT_REG;
-        else if(0 == strcmp(value, "dir"))
-            boolOptions |= OFT_DIR;
-        else if(0 == strcmp(value, "sym"))
-            boolOptions |= OFT_SYM;
-        else
-            return ERROR;
-    }
+int getopt_depth() {return _s_depth;}
 
-    return OK;
-}
+bool getopt_reverse() {return _s_bool_settings & OPT_REVE;}
 
-void init_filetype()
-{
-    if (!getopt_filetype(OFT_REG) && !getopt_filetype(OFT_DIR) && !getopt_filetype(OFT_SYM))
-        setopt_filetype("reg", FALSE);
-}
+bool getopt_sortby(const EN_OptSortBy value) {return value == _s_sort_by ? true : false;}
 
-int getopt_depth(){return depth;}
+bool getopt_output(const EN_OptOutput value) {return value == _s_output ? true : false;}
 
-Status setopt_depth(const char *value)
-{
-    int ivalue;
-    if (ERROR == string_to_int(value, &ivalue))
-        return ERROR;
-    else
-        depth = ivalue;
-
-    return OK;
-}
-
-bool getopt_reverse(){return boolOptions & OPT_REVE;}
-
-Status setopt_reverse(const bool value)
-{
-    if (value)
-        boolOptions |= OPT_REVE;
-    else
-        boolOptions &= ~OPT_REVE;
-
-    return OK;
-}
-
-bool getopt_sortby(const OptSortBy value){return value == sortBy ? TRUE : FALSE;}
-
-Status setopt_sortby(const char *value)
-{
-    if (0 == strcmp(value, "path"))
-        sortBy = OSB_PATH;
-    else if (0 == strcmp(value, "file"))
-        sortBy = OSB_FILE;
-    else if (0 == strcmp(value, "size"))
-        sortBy = OSB_SIZE;
-    else if (0 == strcmp(value, "date"))
-        sortBy = OSB_DATE;
-    else if (0 == strcmp(value, "null"))
-        sortBy = OSB_NULL;
-    else
-        return ERROR;
-
-    return OK;
-}
-
-bool getopt_output(const OptOutput value){return value == output ? TRUE : FALSE;}
-
-Status setopt_output(const char *value)
-{
-    if (0 == strcmp(value, "abs"))
-        output = OOP_ABS;
-    else if (0 == strcmp(value, "rel"))
-        output = OOP_REL;
-    else if (0 == strcmp(value, "bsn"))
-        output = OOP_BSN;
-    else
-        return ERROR;
-
-    return OK;
-}
-
-bool getopt_group(){return boolOptions & OPT_GRUP;}
-
-Status setopt_group(const bool value)
-{
-    if (value)
-        boolOptions |= OPT_GRUP;
-    else
-        boolOptions &= ~OPT_GRUP;
-
-    return OK;
-}
+bool getopt_group() {return _s_bool_settings & OPT_GRUP;}
 
 char **get_dirpaths()
 {
-    return dirpaths;
+    return _s_dirpaths;
 }
 
 void usage(bool verbose)
@@ -314,7 +224,106 @@ Options:\n\
     }
 }
 
-static void remove_last_separator(char *dir)
+/* Private functions */
+
+static Status _setopt_filetype(const char *value, const bool unset)
+{
+    if (unset)
+    {
+        if (0 == strcmp(value, "reg"))
+            _s_bool_settings &= ~OFT_REG;
+        else if(0 == strcmp(value, "dir"))
+            _s_bool_settings &= ~OFT_DIR;
+        else if(0 == strcmp(value, "sym"))
+            _s_bool_settings &= ~OFT_SYM;
+        else
+            return ERROR;
+    }
+    else
+    {
+        if (0 == strcmp(value, "reg"))
+            _s_bool_settings |= OFT_REG;
+        else if(0 == strcmp(value, "dir"))
+            _s_bool_settings |= OFT_DIR;
+        else if(0 == strcmp(value, "sym"))
+            _s_bool_settings |= OFT_SYM;
+        else
+            return ERROR;
+    }
+
+    return OK;
+}
+
+static Status _setopt_depth(const char *value)
+{
+    int ivalue;
+    if (ERROR == string_to_int(value, &ivalue))
+        return ERROR;
+    else
+        _s_depth = ivalue;
+
+    return OK;
+}
+
+static Status _setopt_reverse(const bool value)
+{
+    if (value)
+        _s_bool_settings |= OPT_REVE;
+    else
+        _s_bool_settings &= ~OPT_REVE;
+
+    return OK;
+}
+
+static Status _setopt_sortby(const char *value)
+{
+    if (0 == strcmp(value, "path"))
+        _s_sort_by = OSB_PATH;
+    else if (0 == strcmp(value, "file"))
+        _s_sort_by = OSB_FILE;
+    else if (0 == strcmp(value, "size"))
+        _s_sort_by = OSB_SIZE;
+    else if (0 == strcmp(value, "date"))
+        _s_sort_by = OSB_DATE;
+    else if (0 == strcmp(value, "null"))
+        _s_sort_by = OSB_NULL;
+    else
+        return ERROR;
+
+    return OK;
+}
+
+static Status _setopt_output(const char *value)
+{
+    if (0 == strcmp(value, "abs"))
+        _s_output = OOP_ABS;
+    else if (0 == strcmp(value, "rel"))
+        _s_output = OOP_REL;
+    else if (0 == strcmp(value, "bsn"))
+        _s_output = OOP_BSN;
+    else
+        return ERROR;
+
+    return OK;
+}
+
+static Status _setopt_group(const bool value)
+{
+    if (value)
+        _s_bool_settings |= OPT_GRUP;
+    else
+        _s_bool_settings &= ~OPT_GRUP;
+
+    return OK;
+}
+
+static void _init_filetype()
+{
+    if (!getopt_filetype(OFT_REG) && !getopt_filetype(OFT_DIR) && !getopt_filetype(OFT_SYM))
+        _setopt_filetype("reg", false);
+}
+
+static void _remove_trailing_separator(char *dir)
 {
     int dir_length = strlen(dir);
     DEBUG_VAR(3, "%d", dir_length);
